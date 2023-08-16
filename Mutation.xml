@@ -1,0 +1,70 @@
+<ROSETTASCRIPTS>
+ 
+    <SCOREFXNS>
+        <ScoreFunction name="score15" weights="ref2015" />     
+    </SCOREFXNS>
+ 
+ 
+    <RESIDUE_SELECTORS>
+        <Chain name="chA" chains="A" />
+        Index name="ResiduesOfBP" resnums="55A,128A,132A,135A,164A,264A,265A,268A,269A,271A,305A,306A,309A,339A,343A"/> 
+        <Index name="Residues_BP" resnums="135A,164A,265A,268A,269A,309A"/>
+        <ResiduePropertySelector name="BP_redesign" properties="HYDROPHOBIC" />
+        <And name="BP_idrofobica" selectors="Residues_BP,BP_redesign"/>
+        <Not name="not_coreresidues" selector="Residues_BP" />          
+    </RESIDUE_SELECTORS>
+ 
+    <SIMPLE_METRICS>
+     
+    </SIMPLE_METRICS> 
+
+    <TASKOPERATIONS>
+
+        RestrictToRepacking name=""/>        
+       <RestrictToResidueProperties name="hydrophobic_residues" properties="HYDROPHOBIC" selector="Residues_BP" />
+       <OperateOnResidueSubset name="repack_minimize" selector="not_coreresidues" >
+         <RestrictToRepackingRLT/>
+       </OperateOnResidueSubset>	
+    </TASKOPERATIONS>
+ 
+ 
+    <FILTERS>           
+    </FILTERS>
+
+ 
+    <MOVERS>
+ 
+       <EnzRepackMinimize name="RepMin" scorefxn_repack="score15" scorefxn_minimize="score15"  design="0" repack_only="0" fix_catalytic="0" minimize_rb="1"  minimize_bb="0" minimize_sc="1" minimize_lig="0" backrub="0" cycles="1" task_operations="hydrophobic_residues,repack_minimize"/>
+          
+       <FastDesign name="BP_Design" scorefxn="score15" task_operations="hydrophobic_residues,repack_minimize"/>                 
+  
+       PackRotamersMover name="PackerAction" nloop="5" scorefxn="score15" task_operations="repack"/>  
+
+       <InterfaceAnalyzerMover name="Interf_analysis" scorefxn="score15" pack_separated="true" pack_input="true" packstat="true" scorefile_reporting_prefix="INTRFC" />  
+  
+       <PyMOLMover name="pymol" keep_history="1"/>
+
+    </MOVERS>
+ 
+ 
+    <APPLY_TO_POSE>
+    </APPLY_TO_POSE>
+ 
+ 
+    <PROTOCOLS>
+              <Add mover="pymol"/>
+              
+              <Add mover="BP_Design"/>
+              
+              <Add mover="pymol"/>
+             
+              <Add mover="RepMin"/>
+             
+              Add mover="pymol"/>
+             
+              <Add mover="Interf_analysis"/>
+                        
+    </PROTOCOLS>
+ 
+ </ROSETTASCRIPTS>  
+
