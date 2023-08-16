@@ -1,0 +1,88 @@
+<ROSETTASCRIPTS>
+ 
+    <SCOREFXNS>
+        <ScoreFunction name="score15" weights="ref2015" />
+        <ScoreFunction name="r15_cart" weights="ref2015" >    
+           <Reweight scoretype="pro_close" weight="0.0" />
+           <Reweight scoretype="cart_bonded" weight="0.625" />
+        </ScoreFunction>
+        <ScoreFunction name="dockscore" weights="beta">
+           <Reweight scoretype="fa_rep" weight="0.2"/>
+           <Reweight scoretype="coordinate_constraint" weight="0.1"/>
+        </ScoreFunction>
+        <ScoreFunction name="relaxscore" weights="beta_cart"/>
+     
+    </SCOREFXNS>
+ 
+ 
+    <RESIDUE_SELECTORS>
+        <Chain name="chA" chains="A" />          
+    </RESIDUE_SELECTORS>
+ 
+    <SIMPLE_METRICS>
+       
+    </SIMPLE_METRICS> 
+
+    <TASKOPERATIONS>
+
+        <RestrictToRepacking name="FullStructure"/>        
+        
+        <ExtraRotamersGeneric name="extrachi" ex1="1" ex2="1" ex1_sample_level="1" ex2_sample_level="1" />
+                
+     </TASKOPERATIONS>
+ 
+ 
+     <FILTERS>
+        Ddg name="ComplexBindingEnergy" threshold="-1" threshold_min="-999999" repeats="4" repack="1" extreme_value_removal="true" scorefxn="score15"/>             
+     </FILTERS>
+
+ 
+      <MOVERS>
+
+        <MinMover name="min_torsion" scorefxn="score15" chi="true" bb="1" cartesian="F" >
+        </MinMover>
+        <MinMover name="min_cart" scorefxn="r15_cart" chi="true" bb="1" cartesian="T" >
+        </MinMover>
+        <PackRotamersMover name="PackerAction" nloop="5" scorefxn="score15" task_operations="FullStructure"/>  
+
+
+        <GALigandDock name="dock" runmode="VSH" scorefxn="dockscore" scorefxn_relax="relaxscore" grid_step="0.25" padding="5.0" hashsize="8.0" subhash="3" random_oversample="10" final_exact_minimize="bbscN" cartmin_lig="1" min_neighbor="1" estimate_dG="1" rotprob="0.9" rotEcut="100" sidechains="aniso">
+         <Stage repeats="100" npool="50" pmut="0.2" smoothing="0.375" rmsdthreshold="2.0" maxiter="50" pack_cycles="100" ramp_schedule="0.1,1.0"/> 
+        </GALigandDock>         
+
+
+        <InterfaceAnalyzerMover name="Interf_analysis" scorefxn="score15" pack_separated="true" pack_input="true" packstat="true" scorefile_reporting_prefix="INTRFC" />  
+
+        
+        <PyMOLMover name="pymol" keep_history="1"/>
+        <ddG name="ddG" scorefxn="score15" per_residue_ddg="true" relax_bound="false"/>
+
+      </MOVERS>
+ 
+ 
+      <APPLY_TO_POSE>
+      </APPLY_TO_POSE>
+ 
+ 
+      <PROTOCOLS>
+              <Add mover="pymol"/>
+              <Add mover="PackerAction"/>
+              <Add mover="min_torsion"/>
+              <Add mover="min_cart"/>
+              <Add mover="pymol"/>
+              <Add mover="min_torsion"/>
+              <Add mover="min_cart"/>
+              <Add mover="pymol"/>
+              <Add mover="dock"/>
+              <Add mover="PackerAction"/>
+              <Add mover="min_torsion"/>
+              <Add mover="min_cart"/>
+              <Add mover="pymol"/>
+              Add filter="ComplexBindingEnergy"/>
+              Add mover="ddG"/>
+              <Add mover="Interf_analysis"/>
+                        
+      </PROTOCOLS>
+ 
+ </ROSETTASCRIPTS>  
+
